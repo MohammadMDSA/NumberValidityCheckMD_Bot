@@ -20,7 +20,8 @@ namespace Bot_Application1.Dialogs
 			var activity = await result as Activity;
 
 			// calculate something for us to return
-			int length = (activity.Text ?? string.Empty).Length;
+			string input = activity.Text ?? string.Empty;
+			int length = input.Length;
 
 			// return our reply to the user
 			await context.PostAsync($"You sent {activity.Text} which was {length} characters");
