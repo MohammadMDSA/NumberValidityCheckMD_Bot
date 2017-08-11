@@ -119,6 +119,7 @@
     </Compile>
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="SSL\NumberValidator\NumberValidator.cs" />
+    <Compile Include="SSL\NumberValidator\NumberValidityChecker.cs" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="packages.config">
