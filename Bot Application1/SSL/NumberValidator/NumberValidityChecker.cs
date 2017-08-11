@@ -50,7 +50,7 @@ namespace Bot_Application1.SSL.NumberValidator
 
 		public long DecimalPart
 		{
-			get { return this.decimalPart * (negativeInteger ? -1 : 1; }
+			get { return this.decimalPart * (negativeInteger ? -1 : 1); }
 		}
 
 		public long EPart

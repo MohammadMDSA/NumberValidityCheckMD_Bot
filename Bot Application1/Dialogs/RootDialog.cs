@@ -26,7 +26,7 @@ namespace Bot_Application1.Dialogs
 
 			var val = new NumberValidityChecker(input);
 
-			await context.PostAsync("You entered a" + (val.Valid ? " vali" : "n invalid") + " number");
+			await context.PostAsync("You entered a" + (val.Valid ? " valid" : "n invalid") + " number");
 			if(val.Valid)
 				await context.PostAsync("You entered " + (val.Value));
 			await context.PostAsync($"{val.IntegerPart}");
