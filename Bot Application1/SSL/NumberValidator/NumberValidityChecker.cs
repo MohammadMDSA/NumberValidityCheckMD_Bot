@@ -13,9 +13,12 @@ namespace Bot_Application1.SSL.NumberValidator
 		private bool valid;
 		private int automataState;
 		private string errorMessage;
-		private Int64 integerPart;
-		private Int64 decimalPart;
-		private Int32 ePart;
+		private long integerPart;
+		private long decimalPart;
+		private long ePart;
+		private double value;
+		private bool negativeInteger;
+		private bool negativeE;
 
 		public NumberValidityChecker(string input)
 		{
@@ -28,35 +31,82 @@ namespace Bot_Application1.SSL.NumberValidator
 			this.decimalPart = 0;
 			this.integerPart = 0;
 			this.ePart = 0;
+			this.value = -1;
+			this.negativeInteger = false;
+			this.negativeE = false;
 
 			valid = checkString();
+			if (valid) value = setValue();
 		}
 
 		public NumberValidityChecker() : this(string.Empty)
 		{
 		}
 
+		public long IntegerPart
+		{
+			get { return this.integerPart * (negativeInteger ? -1 : 1); }
+		}
+
+		public long DecimalPart
+		{
+			get { return this.decimalPart * (negativeInteger ? -1 : 1; }
+		}
+
+		public long EPart
+		{
+			get { return this.ePart * (negativeE ? -1 : 1); }
+		}
+
+		public bool Valid
+		{
+			get { return this.valid; }
+		}
+
+		public double Value
+		{
+			get { return this.value; }
+		}
+
 		private bool checkString()
 		{
 			char[] inputChars = input.ToCharArray();
-			while(input.Length > index)
+			while (input.Length > index)
 			{
 				char current = inputChars[index];
-				int nextState = NumberValidityCheckUtil.StateAutomata[automataState, getActionNumber(current)];
-				if(nextState > 0)
+				int charActionId = getActionNumber(current);
+				int nextState = NumberValidityCheckUtil.StateAutomata[automataState, charActionId];
+				if (nextState > 0)
 				{
+					setNewState(current);
 
+					switch (state)
+					{
+						case NumberState.INTEGER_PART:
+							handleNextCharacter(current, charActionId, ref integerPart);
+							break;
+						case NumberState.DECIMAL_PART:
+							handleNextCharacter(current, charActionId, ref decimalPart);
+							break;
+						case NumberState.E_PART:
+							handleNextCharacter(current, charActionId, ref ePart);
+							break;
+						default:
+							break;
+					}
 				}
 				else
 				{
 					errorMessage = NumberValidityCheckUtil.getErrorMessage(nextState);
 					return false;
 				}
+				index++;
+				automataState = nextState;
 			}
 
 			return true;
 		}
-
+		
 		public string gerErrorMessage()
 		{
 			return this.errorMessage;
@@ -108,29 +158,13 @@ namespace Bot_Application1.SSL.NumberValidator
 			}
 		}
 
-		private void handleNextCharacter(char nextItem, int actionId)
+		private void handleNextCharacter(char nextItem, int actionId, ref long current)
 		{
-			Int64 current;
-			switch (state)
-			{
-				case NumberState.INTEGER_PART:
-					current = integerPart;
-					break;
-				case NumberState.DECIMAL_PART:
-					current = decimalPart;
-					break;
-				case NumberState.E_PART:
-					current = ePart;
-					break;
-				default:
-					current = 0;
-					break;
-			}
 
 			switch (actionId)
 			{
 				case 0:
-					Int64 currentDigit = (Int64)nextItem - '0';
+					long currentDigit = nextItem - '0';
 					current *= 10;
 					current += currentDigit;
 					break;
@@ -138,13 +172,27 @@ namespace Bot_Application1.SSL.NumberValidator
 					current *= 10;
 					break;
 				case 5:
-					current *= -1;
+					if (state == NumberState.INTEGER_PART)
+						negativeInteger = true;
+					else if (state == NumberState.E_PART)
+						negativeE = true;
 					break;
 
 				default:
 					break;
 			}
 		}
+
+		private double setValue()
+		{
+			double result = integerPart * (negativeInteger ? -1 : 1);
+			int decimalLen = 0;
+			while (this.decimalPart >= Math.Pow(10, decimalLen)) decimalLen++;
+			result += decimalPart * Math.Pow(10, -decimalLen) * (negativeInteger ? -1 : 1);
+			result *= Math.Pow(10, ePart * (negativeE ? -1 : 1));
+			return result;
+		}
+
 	}
 
 	public enum NumberState
@@ -166,9 +214,10 @@ namespace Bot_Application1.SSL.NumberValidator
 			{-12,   -13,    4,      7,      -14,    -15,    11}, ///3
 			{5,     5,      -16,    -17,    -18,    -19,    -20}, ///4
 			{5,     5,      -21,    7,      -22,    -23,    12}, ///5
-			{9,     9,      -24,    -25,    8,      8,      -26}, ///6
-			{9,     9,      -27,    -28,    -29,    -30,    -31}, ///7
-			{9,     9,      -32,    -33,    -34,    -35,    13} ///8
+			{0,		0,		0,		0,		0,		0,		0}, ///empty State
+			{9,     9,      -24,    -25,    8,      8,      -26}, ///7
+			{9,     9,      -27,    -28,    -29,    -30,    -31}, ///8
+			{9,     9,      -32,    -33,    -34,    -35,    13} ///9
 		};
 
 		internal static string getErrorMessage(int errorNumber)
